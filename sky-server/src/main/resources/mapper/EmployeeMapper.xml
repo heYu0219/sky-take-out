@@ -22,6 +22,9 @@
             <if test="status != null">status=#{status},</if>
             <if test="createTime != null">create_time=#{createTime},</if>
             <if test="createUser != null">create_user=#{createUser},</if>
+            <if test="username != null">username=#{username},</if>
+            <if test="sex != null">sex=#{sex},</if>
+            <if test="idNumber != null">id_number=#{idNumber},</if>
         </set>
         where id=#{id}
     </update>
