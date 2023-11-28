@@ -8,4 +8,24 @@
         values (#{name},#{categoryId},#{description},#{image},#{price},#{status},
                 #{createTime},#{createUser},#{updateUser},#{updateTime})
     </insert>
+
+
+    <select id="pageQuery" resultType="com.sky.vo.DishVO">
+        select d.*,c.name as categoryName from dish d left outer join category c on d.category_id=c.id
+        /*多表连接时如有相同字段的名称要指定表名*/
+        <where>
+            <if test="name != null">
+                and d.name like concat('%',#{name},'%')
+            </if>
+            <if test="categoryId != null">
+                and d.category_id=#{categoryId}
+            </if>
+            <if test="status != null">
+                and d.status=#{status}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+
 </mapper>
