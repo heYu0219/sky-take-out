@@ -11,7 +11,9 @@ import com.sky.dto.CategoryDTO;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.entity.Category;
 import com.sky.entity.Employee;
+import com.sky.exception.CategoryEnableFailedException;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
 import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealMapper;
@@ -60,6 +62,8 @@ public class CategoryServiceImpl implements CategoryService {
         category.setId(id);
         category.setStatus(status);
         categoryMapper.update(category);
+
+
     }
 
     @Override

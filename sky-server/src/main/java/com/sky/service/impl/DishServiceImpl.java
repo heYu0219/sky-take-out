@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -57,8 +58,6 @@ public class DishServiceImpl implements DishService {
             }
             dishFlavorMapper.insertBatch(flavors);
         }
-
-
     }
 
     @Override
@@ -100,6 +99,7 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Transactional
     public void update(DishDTO dishDTO) {
         Dish dish=new Dish();
         BeanUtils.copyProperties(dishDTO,dish);
@@ -117,7 +117,6 @@ public class DishServiceImpl implements DishService {
             }
             dishFlavorMapper.insertBatch(flavors);
         }
-
     }
 
     @Override
@@ -128,5 +127,15 @@ public class DishServiceImpl implements DishService {
         BeanUtils.copyProperties(dish,dishVO);
         dishVO.setFlavors(flavors);
         return dishVO;
+    }
+
+    @Override
+    public List<Dish> getByCategoryId(Long categoryId) {
+        Dish dish=Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+        List<Dish> dishList=dishMapper.list(dish);
+        return dishList;
     }
 }

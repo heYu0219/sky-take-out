@@ -33,4 +33,12 @@ public interface DishMapper {
 
     @AutoFill(value = OperationType.UPDATE)
     void update(Dish dish);
+
+    List<Dish> list(Dish dish);
+
+    @Select("select count(id) from dish where category_id=#{categoryId}")
+    Integer getCountByCategoryId(Long categoryId);
+
+    @Select("SELECT d.* from setmeal_dish sd left outer JOIN dish d on sd.dish_id=d.id")
+    List<Dish> getBySetmealId(Long setmealId);
 }

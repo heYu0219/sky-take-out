@@ -3,6 +3,7 @@ package com.sky.controller.admin;
 import com.sky.dto.CategoryPageQueryDTO;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.DishService;
@@ -58,6 +59,13 @@ public class DishController {
     public Result<DishVO> getById(@PathVariable Long id){
         DishVO dishVO=dishService.getByIdWithFlavor(id);
         return Result.success(dishVO);
+    }
+
+    @GetMapping("/list")
+    @ApiOperation("根据分类id查询菜品")
+    public Result getByCategoryId(Long categoryId){
+        List<Dish> dishList=dishService.getByCategoryId(categoryId);
+        return Result.success(dishList);
     }
 
 
