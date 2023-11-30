@@ -11,3 +11,8 @@ sky:
     bucket-name: sky-xiaoheyu
     access-key-id: LTAI5tQzeM2aUuW5SqwYfX1W
     access-key-secret: v56YtxACUUVFXKMlpQhl9xfDgzdzls
+  redis:
+    host: localhost
+    port: 6379
+    password: 123456
+    database: 10
