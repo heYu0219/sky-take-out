@@ -1,9 +1,6 @@
 package com.sky.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -47,4 +44,8 @@ public class ShoppingCart implements Serializable {
     private String image;
 
     private LocalDateTime createTime;
+
+    public Long getUserId() {
+        return userId;
+    }
 }
