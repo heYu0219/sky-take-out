@@ -27,4 +27,7 @@ public interface OrderMapper {
 
     @Select("select * from orders where id=#{id}")
     Orders getById(Long id);
+
+    @Select("SELECT COUNT(*) FROM orders where status=#{status}")
+    Integer statistics(Integer status);
 }
