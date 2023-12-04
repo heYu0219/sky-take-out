@@ -2,6 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.ShoppingCartMapper">
+
     <delete id="delete">
         delete from shopping_cart
         <where>
@@ -41,4 +42,13 @@
             </if>
         </where>
     </update>
+
+    <insert id="insertBatch">
+        insert into shopping_cart (name,image,dish_id,user_id,setmeal_id,dish_flavor,number,amount,create_time)
+        value
+        <foreach collection="shoppingCartList" item="cart" separator=",">
+            (#{cart.name},#{cart.image},#{cart.dishId},#{cart.userId},#{cart.setmealId},#{cart.dishFlavor},#{cart.number},#{cart.amount},#{cart.createTime})
+        </foreach>
+
+    </insert>
 </mapper>

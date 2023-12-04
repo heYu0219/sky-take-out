@@ -1,8 +1,12 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ser.Serializers;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,16 +14,17 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -161,5 +166,85 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+    }
+
+    @Override
+    public PageResult pageQueryForUser(Integer pageNum, Integer pageSize, Integer status) {
+        Long userId = BaseContext.getCurrentId();
+        PageHelper.startPage(pageNum, pageSize);
+        OrdersPageQueryDTO ordersPageQueryDTO=new OrdersPageQueryDTO();
+        ordersPageQueryDTO.setUserId(userId);
+        ordersPageQueryDTO.setStatus(status);
+        //根据筛选条件查询出订单表
+        Page<Orders> page=orderMapper.pageQuery(ordersPageQueryDTO);
+
+        List<OrderVO> list=new ArrayList<>();
+        if(page!=null&&page.size()>0){
+            for(Orders orders:page){
+                //查询每个订单的详细信息
+                List<OrderDetail> orderDetailList=orderDetailMapper.getByorderId(orders.getId());
+
+                //封装订单ordersVO
+                OrderVO orderVO=new OrderVO();
+                BeanUtils.copyProperties(orders,orderVO);
+                orderVO.setOrderDetailList(orderDetailList);
+
+                list.add(orderVO);
+//                System.out.println(orderVO);
+            }
+        }
+        return new PageResult(page.getTotal(), list);
+    }
+
+    @Override
+    public OrderVO getByOrderId(Long id) {
+        Orders orders=orderMapper.getById(id);
+        OrderVO orderVO=new OrderVO();
+        BeanUtils.copyProperties(orders,orderVO);//进行类型转换？
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByorderId(id);
+        orderVO.setOrderDetailList(orderDetailList);
+        return orderVO;
+    }
+
+    @Override
+    public void cancelById(Long id) {
+        Orders order = orderMapper.getById(id);
+        if(order==null){
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        //订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消 7退款
+        if(order.getStatus()>2){//接单 派送 完成 取消 退款的订单不能取消
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders od=new Orders();
+        od.setId(order.getId());
+        //待接单的订单需要退款
+        if(order.getStatus()==Orders.TO_BE_CONFIRMED){
+            //修改支付状态
+            od.setPayStatus(Orders.REFUND);
+        }
+        //修改订单状态为
+        od.setStatus(Orders.CANCELLED);
+        od.setCancelTime(LocalDateTime.now());
+        od.setCancelReason("用户取消");
+        orderMapper.update(od);
+    }
+
+    @Override
+    public void repetitionById(Long id) {
+        //将订单详情转换为购物车列表
+        Long userId = BaseContext.getCurrentId();
+        List<OrderDetail> detailList = orderDetailMapper.getByorderId(id);
+        List<ShoppingCart> shoppingCartList=new ArrayList<>();
+        for (OrderDetail orderDetail:detailList){
+            ShoppingCart cart=new ShoppingCart();
+            BeanUtils.copyProperties(orderDetail,cart,"id");//复制属性时忽略id
+            cart.setUserId(userId);
+            cart.setCreateTime(LocalDateTime.now());
+            shoppingCartList.add(cart);
+        }
+        //批量插入购物车
+        shoppingCartMapper.insertBatch(shoppingCartList);
     }
 }
