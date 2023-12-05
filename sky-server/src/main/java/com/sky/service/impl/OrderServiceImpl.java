@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.github.pagehelper.Page;
@@ -19,6 +20,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
@@ -30,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -47,6 +51,8 @@ public class OrderServiceImpl implements OrderService {
     private UserMapper userMapper;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+    @Autowired
+    private WebSocketServer webSocketServer;
 
 
     @Override
@@ -140,13 +146,14 @@ public class OrderServiceImpl implements OrderService {
         vo.setPackageStr(jsonObject.getString("package"));
 
         //支付成功 修改订单状态 及 支付状态 结账时间
-        Orders order=Orders.builder()
-                .number(ordersPaymentDTO.getOrderNumber())
-                .checkoutTime(LocalDateTime.now())//结账时间
-                        .payStatus(Orders.PAID)//支付状态
-                                .status(Orders.TO_BE_CONFIRMED)//订单状态
-                        .build();
-        orderMapper.updateStatus(order);
+        paySuccess(ordersPaymentDTO.getOrderNumber());
+//        Orders order=Orders.builder()
+//                .number(ordersPaymentDTO.getOrderNumber())
+//                .checkoutTime(LocalDateTime.now())//结账时间
+//                        .payStatus(Orders.PAID)//支付状态
+//                                .status(Orders.TO_BE_CONFIRMED)//订单状态
+//                        .build();
+//        orderMapper.updateStatus(order);
         return vo;
     }
 
@@ -170,6 +177,15 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+
+        //通过websocket向客户端推送消息 type  orderId  content
+        Map map=new HashMap();
+        map.put("type",1);//1 表示来单提醒 2表示客户催单
+        map.put("orderId",ordersDB.getId());
+        map.put("content","订单号："+outTradeNo);
+
+        String jsonString = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(jsonString);
     }
 
     @Override
