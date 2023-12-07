@@ -26,5 +26,5 @@ sky:
     weChatPayCertFilePath: D:\wechatpay_166D96F876F45C7D07CE98952A96EC980368ACFC.pem
 #    notifyUrl: https://www.weixin.qq.com/wxpay/pay.php
 #    refundNotifyUrl: https://www.weixin.qq.com/wxpay/pay.php
-    notify-url:  https://83d27d0.r12.cpolar.top/notify/paySuccess
-    refundNotifyUrl: https://83d27d0.r12.cpolar.top/notify/refundSuccess
+    notify-url:  http://5f30468c.r2.cpolar.top/notify/paySuccess
+    refundNotifyUrl: http://5f30468c.r2.cpolar.top/notify/refundSuccess
